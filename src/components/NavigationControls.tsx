@@ -1,0 +1,115 @@
+import React from 'react';
+import { ChevronRight, ChevronLeft, CalendarCheck } from 'lucide-react';
+import { ScheduleCombination } from '../types';
+
+interface NavigationControlsProps {
+  currentIndex: number; // 0-based
+  totalCount: number;
+  currentCombination: ScheduleCombination;
+  onNext: () => void;
+  onPrev: () => void;
+  onSelectIndex: (index: number) => void;
+}
+
+export const NavigationControls: React.FC<NavigationControlsProps> = ({
+  currentIndex,
+  totalCount,
+  currentCombination,
+  onNext,
+  onPrev,
+  onSelectIndex,
+}) => {
+  const currentDisplayNumber = currentIndex + 1;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
+      {/* Top bar: State title, Prev/Next buttons */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-blue-50 text-blue-900 border border-blue-200 px-3.5 py-1.5 rounded-lg">
+            <CalendarCheck className="w-4 h-4 text-blue-600" />
+            <span className="font-bold text-base sm:text-lg">
+              حالت {currentDisplayNumber} / {totalCount}
+            </span>
+          </div>
+          <span className="text-xs text-slate-500 hidden md:inline">
+            (امکان جابه‌جایی با کلیدهای جهت‌نمای کیبورد <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-700 text-[10px]">←</kbd> و <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-700 text-[10px]">→</kbd>)
+          </span>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button
+            type="button"
+            onClick={onPrev}
+            disabled={currentIndex === 0}
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-xs cursor-pointer border ${
+              currentIndex === 0
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 active:bg-slate-100'
+            }`}
+          >
+            <span>← حالت قبل</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={currentIndex === totalCount - 1}
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-xs cursor-pointer border ${
+              currentIndex === totalCount - 1
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                : 'bg-blue-600 text-white border-blue-700 hover:bg-blue-700 active:bg-blue-800'
+            }`}
+          >
+            <span>حالت بعد →</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Selected Groups Pills for Active State */}
+      <div className="pt-2 border-t border-slate-100">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-600 mb-2">
+          <span>گروه‌های انتخاب‌شده در این حالت:</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+          {currentCombination.selectedGroups.map((group) => (
+            <div
+              key={group.courseId}
+              className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs"
+            >
+              <div className="truncate pl-1">
+                <span className="font-semibold text-slate-800 block truncate">{group.courseName}</span>
+                <span className="text-slate-500 text-[11px] truncate block">{group.instructor}</span>
+              </div>
+              <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold shrink-0 text-xs border border-blue-200">
+                گروه {group.groupId}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick State Selector Buttons */}
+      <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-custom">
+        <span className="text-xs font-medium text-slate-400 shrink-0 ml-1">انتخاب مستقیم:</span>
+        {Array.from({ length: totalCount }).map((_, idx) => {
+          const isActive = idx === currentIndex;
+          return (
+            <button
+              key={idx}
+              onClick={() => onSelectIndex(idx)}
+              className={`h-8 min-w-8 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center shrink-0 border ${
+                isActive
+                  ? 'bg-blue-600 text-white border-blue-700 shadow-xs ring-2 ring-blue-300 ring-offset-1'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {idx + 1}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};

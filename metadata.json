@@ -1,0 +1,6 @@
+{
+  "name": "برنامه‌ریز انتخاب واحد دانشگاه",
+  "description": "بررسی خودکار تمام ترکیب‌های بدون تداخل گروه‌های درسی و نمایش جدول زمان‌بندی هفتگی",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
