@@ -23,9 +23,17 @@ export interface CourseGroup {
   sessions: ClassSession[];
 }
 
+// امتحان پایان‌ترم: روز در بازه ۱۲ روزه امتحانات (۱ تا ۱۲)
+export interface ExamSlot {
+  day: number;             // شماره روز در بازه امتحانات، از ۱ تا ۱۲
+  startHour: number;       // ساعت شروع، مثلاً 8, 11, 14
+  durationMinutes: number; // مثلاً 180
+}
+
 export interface Course {
   id: number;
   name: string;
+  exam?: ExamSlot;
   groups: CourseGroup[];
 }
 
@@ -39,6 +47,9 @@ export interface ScheduleCombination {
     instructor: string;
   }[];
   sessions: ClassSession[];
-  hasConflict: boolean;
-  conflictDetails?: string[];
+  hasConflict: boolean;          // تداخل کلاس یا امتحان
+  conflictDetails?: string[];    // همه تداخل‌ها
+  classConflictDetails?: string[];
+  examConflictDetails?: string[];
+  exams: { courseId: number; courseName: string; exam: ExamSlot }[];
 }

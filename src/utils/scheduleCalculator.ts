@@ -1,5 +1,5 @@
 import { COURSES } from '../data/coursesData';
-import { ClassSession, ScheduleCombination } from '../types';
+import { ClassSession, Course, CourseGroup, ExamSlot, ScheduleCombination } from '../types';
 
 /**
  * Checks if two sessions conflict based on the university rules:
@@ -18,13 +18,12 @@ export function doSessionsConflict(s1: ClassSession, s2: ClassSession): boolean 
     return false;
   }
 
-  // Check time overlap: intervals [s1.startHour, s1.endHour] and [s2.startHour, s2.endHour]
   const isTimeOverlap = Math.max(s1.startHour, s2.startHour) < Math.min(s1.endHour, s2.endHour);
   if (!isTimeOverlap) {
     return false;
   }
 
-  // If one is 'فرد' and the other is 'زوج', they NEVER conflict because they occur in alternating weeks!
+  // فرد + زوج هرگز تداخل ندارند (هفته‌های جداگانه)
   if (
     (s1.recurrence === 'فرد' && s2.recurrence === 'زوج') ||
     (s1.recurrence === 'زوج' && s2.recurrence === 'فرد')
@@ -32,7 +31,6 @@ export function doSessionsConflict(s1: ClassSession, s2: ClassSession): boolean 
     return false;
   }
 
-  // Any other combination (ثابت+ثابت, ثابت+فرد, ثابت+زوج, فرد+فرد, زوج+زوج) is a conflict!
   return true;
 }
 
@@ -41,79 +39,121 @@ export function getConflictDescription(s1: ClassSession, s2: ClassSession): stri
   return `تداخل روز ${s1.day} ساعت ${timeStr} بین «${s1.courseName} (${s1.recurrence})» و «${s2.courseName} (${s2.recurrence})»`;
 }
 
+/** ساعت پایان امتحان (عدد اعشاری، مثلاً 11 + 180 دقیقه = 14) */
+export function getExamEndHour(exam: ExamSlot): number {
+  return exam.startHour + exam.durationMinutes / 60;
+}
+
+export function formatHour(h: number): string {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  return `${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+}
+
+export function formatExamTime(exam: ExamSlot): string {
+  return `روز ${exam.day} امتحانات، ${formatHour(exam.startHour)} تا ${formatHour(getExamEndHour(exam))}`;
+}
+
 /**
- * Evaluates all 16 possible combinations and partitions them into valid and invalid.
+ * دو امتحان تداخل دارند اگر در یک روز باشند و بازه زمانی‌شان هم‌پوشانی داشته باشد.
+ * امتحان‌های پشت‌سرهم (مثلاً ۱۱–۱۴ و ۱۴–۱۷) تداخل حساب نمی‌شوند.
  */
-export function calculateAllCombinations(): {
+export function doExamsConflict(e1: ExamSlot, e2: ExamSlot): boolean {
+  if (e1.day !== e2.day) return false;
+  return Math.max(e1.startHour, e2.startHour) < Math.min(getExamEndHour(e1), getExamEndHour(e2));
+}
+
+export function getExamConflictDescription(c1: Course, c2: Course): string {
+  return `تداخل امتحان: «${c1.name}» (${formatExamTime(c1.exam!)}) با «${c2.name}» (${formatExamTime(c2.exam!)})`;
+}
+
+/**
+ * Evaluates every possible combination of groups (one group per course) and
+ * partitions them into valid and invalid.
+ * A combination is invalid if any class sessions overlap OR any exams overlap.
+ *
+ * @param courseIds اگر داده شود فقط همین درس‌ها بررسی می‌شوند (پیش‌فرض: همه درس‌ها)
+ */
+export function calculateAllCombinations(courseIds?: number[]): {
   allCombinations: ScheduleCombination[];
   validCombinations: ScheduleCombination[];
   invalidCombinations: ScheduleCombination[];
 } {
-  const allCombinations: ScheduleCombination[] = [];
+  const courses = courseIds ? COURSES.filter((c) => courseIds.includes(c.id)) : COURSES;
 
-  const c1 = COURSES.find((c) => c.id === 1)!;
-  const c2 = COURSES.find((c) => c.id === 2)!;
-  const c3 = COURSES.find((c) => c.id === 3)!;
-  const c4 = COURSES.find((c) => c.id === 4)!;
-  const c5 = COURSES.find((c) => c.id === 5)!;
+  // حاصل‌ضرب دکارتی گروه‌های همه درس‌ها
+  let product: CourseGroup[][] = [[]];
+  for (const course of courses) {
+    const next: CourseGroup[][] = [];
+    for (const partial of product) {
+      for (const g of course.groups) {
+        next.push([...partial, g]);
+      }
+    }
+    product = next;
+  }
 
-  let combinationCount = 0;
-
-  for (const g1 of c1.groups) {
-    for (const g2 of c2.groups) {
-      for (const g3 of c3.groups) {
-        for (const g4 of c4.groups) {
-          for (const g5 of c5.groups) {
-            combinationCount++;
-
-            const selectedGroups = [
-              { courseId: c1.id, courseName: c1.name, groupId: g1.groupId, instructor: g1.instructor },
-              { courseId: c2.id, courseName: c2.name, groupId: g2.groupId, instructor: g2.instructor },
-              { courseId: c3.id, courseName: c3.name, groupId: g3.groupId, instructor: g3.instructor },
-              { courseId: c4.id, courseName: c4.name, groupId: g4.groupId, instructor: g4.instructor },
-              { courseId: c5.id, courseName: c5.name, groupId: g5.groupId, instructor: g5.instructor },
-            ];
-
-            const sessions: ClassSession[] = [
-              ...g1.sessions,
-              ...g2.sessions,
-              ...g3.sessions,
-              ...g4.sessions,
-              ...g5.sessions,
-            ];
-
-            const conflictDetails: string[] = [];
-
-            for (let i = 0; i < sessions.length; i++) {
-              for (let j = i + 1; j < sessions.length; j++) {
-                if (doSessionsConflict(sessions[i], sessions[j])) {
-                  conflictDetails.push(getConflictDescription(sessions[i], sessions[j]));
-                }
-              }
-            }
-
-            const hasConflict = conflictDetails.length > 0;
-
-            allCombinations.push({
-              id: combinationCount,
-              combinationIndex: combinationCount,
-              selectedGroups,
-              sessions,
-              hasConflict,
-              conflictDetails,
-            });
-          }
-        }
+  // تداخل امتحان‌ها فقط به درس‌ها بستگی دارد (نه گروه‌ها)، پس یک‌بار محاسبه می‌شود
+  const examConflictDetails: string[] = [];
+  for (let i = 0; i < courses.length; i++) {
+    for (let j = i + 1; j < courses.length; j++) {
+      const a = courses[i];
+      const b = courses[j];
+      if (a.exam && b.exam && doExamsConflict(a.exam, b.exam)) {
+        examConflictDetails.push(getExamConflictDescription(a, b));
       }
     }
   }
 
-  const validCombinations = allCombinations.filter((c) => !c.hasConflict);
-  const invalidCombinations = allCombinations.filter((c) => c.hasConflict);
+  const exams = courses
+    .filter((c) => c.exam)
+    .map((c) => ({ courseId: c.id, courseName: c.name, exam: c.exam! }));
+
+  const allCombinations: ScheduleCombination[] = product.map((groups, idx) => {
+    const selectedGroups = groups.map((g, i) => ({
+      courseId: courses[i].id,
+      courseName: courses[i].name,
+      groupId: g.groupId,
+      instructor: g.instructor,
+    }));
+
+    const sessions: ClassSession[] = groups.flatMap((g) => g.sessions);
+
+    const classConflictDetails: string[] = [];
+    for (let i = 0; i < sessions.length; i++) {
+      for (let j = i + 1; j < sessions.length; j++) {
+        if (doSessionsConflict(sessions[i], sessions[j])) {
+          classConflictDetails.push(getConflictDescription(sessions[i], sessions[j]));
+        }
+      }
+    }
+
+    const conflictDetails = [...classConflictDetails, ...examConflictDetails];
+
+    return {
+      id: idx + 1,
+      combinationIndex: idx + 1,
+      selectedGroups,
+      sessions,
+      hasConflict: conflictDetails.length > 0,
+      conflictDetails,
+      classConflictDetails,
+      examConflictDetails,
+      exams,
+    };
+  });
 
   return {
     allCombinations,
-    validCombinations,
-    invalidCombinations,
+    validCombinations: allCombinations.filter((c) => !c.hasConflict),
+    invalidCombinations: allCombinations.filter((c) => c.hasConflict),
   };
+}
+
+/** تعداد کل ترکیب‌ها به‌صورت رشته‌ی ضرب، مثلاً «۲ × ۲ × ۱ = ۴» */
+export function getCombinationFormula(courseIds?: number[]): string {
+  const courses = courseIds ? COURSES.filter((c) => courseIds.includes(c.id)) : COURSES;
+  const counts = courses.map((c) => c.groups.length);
+  const total = counts.reduce((a, b) => a * b, 1);
+  return `${counts.join(' × ')} = ${total}`;
 }

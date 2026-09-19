@@ -4,6 +4,7 @@ export const COURSES: Course[] = [
   {
     id: 1,
     name: 'پدیده‌های انتقال',
+    exam: { day: 1, startHour: 11, durationMinutes: 180 },
     groups: [
       {
         groupId: 1,
@@ -78,6 +79,7 @@ export const COURSES: Course[] = [
   {
     id: 2,
     name: 'خواص فیزیکی مواد ۱',
+    exam: { day: 4, startHour: 11, durationMinutes: 180 },
     groups: [
       {
         groupId: 1,
@@ -152,6 +154,7 @@ export const COURSES: Course[] = [
   {
     id: 3,
     name: 'شیمی فیزیک مواد',
+    exam: { day: 11, startHour: 8, durationMinutes: 180 },
     groups: [
       {
         groupId: 1,
@@ -226,6 +229,7 @@ export const COURSES: Course[] = [
   {
     id: 4,
     name: 'مبانی و برنامه‌سازی کامپیوتر',
+    exam: { day: 9, startHour: 14, durationMinutes: 180 },
     groups: [
       {
         groupId: 1,
@@ -266,6 +270,7 @@ export const COURSES: Course[] = [
   {
     id: 5,
     name: 'مکانیک مواد',
+    exam: { day: 6, startHour: 8, durationMinutes: 180 },
     groups: [
       {
         groupId: 1,
@@ -332,6 +337,155 @@ export const COURSES: Course[] = [
             durationMinutes: 120,
             recurrence: 'فرد',
             sessionTitle: 'جلسه دوم (هفته فرد)',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 6,
+    name: 'ریاضی مهندسی',
+    exam: { day: 9, startHour: 11, durationMinutes: 180 },
+    groups: [
+      {
+        groupId: 1,
+        instructor: 'سمانه صاحبیان سقی',
+        sessions: [
+          {
+            id: 'c6-g1-s1',
+            courseId: 6,
+            courseName: 'ریاضی مهندسی',
+            groupId: 1,
+            instructor: 'سمانه صاحبیان سقی',
+            room: '37-C',
+            day: 'یکشنبه',
+            startHour: 8,
+            endHour: 10,
+            durationMinutes: 120,
+            recurrence: 'ثابت',
+            sessionTitle: 'جلسه اول (ثابت)',
+          },
+          {
+            id: 'c6-g1-s2',
+            courseId: 6,
+            courseName: 'ریاضی مهندسی',
+            groupId: 1,
+            instructor: 'سمانه صاحبیان سقی',
+            room: '32-C',
+            day: 'دوشنبه',
+            startHour: 14,
+            endHour: 16,
+            durationMinutes: 120,
+            recurrence: 'فرد',
+            sessionTitle: 'جلسه دوم (هفته فرد)',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 7,
+    name: 'مبانی و کاربرد مهندسی مدار',
+    exam: { day: 7, startHour: 11, durationMinutes: 180 },
+    groups: [
+      {
+        groupId: 1,
+        instructor: 'محمد ابراهیم نیا',
+        sessions: [
+          {
+            id: 'c7-g1-s1',
+            courseId: 7,
+            courseName: 'مبانی و کاربرد مهندسی مدار',
+            groupId: 1,
+            instructor: 'محمد ابراهیم نیا',
+            room: '35-C',
+            day: 'یکشنبه',
+            startHour: 16,
+            endHour: 18,
+            durationMinutes: 120,
+            recurrence: 'ثابت',
+            sessionTitle: 'جلسه اول (ثابت)',
+          },
+          {
+            id: 'c7-g1-s2',
+            courseId: 7,
+            courseName: 'مبانی و کاربرد مهندسی مدار',
+            groupId: 1,
+            instructor: 'محمد ابراهیم نیا',
+            room: '32-C',
+            day: 'سهشنبه',
+            startHour: 16,
+            endHour: 18,
+            durationMinutes: 120,
+            recurrence: 'زوج',
+            sessionTitle: 'جلسه دوم (هفته زوج)',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 8,
+    name: 'محاسبات عددی',
+    exam: { day: 9, startHour: 14, durationMinutes: 180 },
+    groups: [
+      {
+        groupId: 140,
+        instructor: 'بی بی نوشین داودی',
+        sessions: [
+          {
+            id: 'c8-g140-s1',
+            courseId: 8,
+            courseName: 'محاسبات عددی',
+            groupId: 140,
+            instructor: 'بی بی نوشین داودی',
+            room: '0',
+            day: 'چهارشنبه',
+            startHour: 12,
+            endHour: 14,
+            durationMinutes: 120,
+            recurrence: 'ثابت',
+            sessionTitle: 'جلسه اول (ثابت)',
+          },
+        ],
+      },
+      {
+        groupId: 143,
+        instructor: 'بی بی نوشین داودی',
+        sessions: [
+          {
+            id: 'c8-g143-s1',
+            courseId: 8,
+            courseName: 'محاسبات عددی',
+            groupId: 143,
+            instructor: 'بی بی نوشین داودی',
+            room: '0',
+            day: 'شنبه',
+            startHour: 12,
+            endHour: 14,
+            durationMinutes: 120,
+            recurrence: 'ثابت',
+            sessionTitle: 'جلسه اول (ثابت)',
+          },
+        ],
+      },
+      {
+        groupId: 144,
+        instructor: 'مینا مرتضوی',
+        sessions: [
+          {
+            id: 'c8-g144-s1',
+            courseId: 8,
+            courseName: 'محاسبات عددی',
+            groupId: 144,
+            instructor: 'مینا مرتضوی',
+            room: '0',
+            day: 'شنبه',
+            startHour: 14,
+            endHour: 16,
+            durationMinutes: 120,
+            recurrence: 'ثابت',
+            sessionTitle: 'جلسه اول (ثابت)',
           },
         ],
       },

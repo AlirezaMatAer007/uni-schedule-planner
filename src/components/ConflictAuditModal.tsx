@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, AlertTriangle, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
+import { X, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
 import { ScheduleCombination } from '../types';
 
 interface ConflictAuditModalProps {
@@ -8,6 +8,8 @@ interface ConflictAuditModalProps {
   allCombinations: ScheduleCombination[];
   validCombinations: ScheduleCombination[];
   invalidCombinations: ScheduleCombination[];
+  courseCount: number; // تعداد درس‌های انتخاب‌شده
+  formula: string;     // مثلاً «2 × 2 × 2 × 1 × 2 = 16»
 }
 
 export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
@@ -16,6 +18,8 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
   allCombinations,
   validCombinations,
   invalidCombinations,
+  courseCount,
+  formula,
 }) => {
   if (!isOpen) return null;
 
@@ -31,7 +35,7 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
                 گزارش جامع بررسی و آزمون تداخل تمام ترکیب‌ها
               </h3>
               <p className="text-xs text-slate-500">
-                ارزیابی الگوریتمی ۱۶ حالت ممکن برای ۵ درس انتخابی
+                ارزیابی الگوریتمی {allCombinations.length} حالت ممکن برای {courseCount} درس انتخابی
               </p>
             </div>
           </div>
@@ -53,7 +57,7 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
               <div className="text-2xl font-black text-slate-800">
                 {allCombinations.length} <span className="text-xs font-normal text-slate-500">ترکیب</span>
               </div>
-              <div className="text-[11px] text-slate-500 mt-1">۲ × ۲ × ۲ × ۱ × ۲ = ۱۶</div>
+              <div className="text-[11px] text-slate-500 mt-1" dir="ltr">{formula}</div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
@@ -61,7 +65,7 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
               <div className="text-2xl font-black text-emerald-800">
                 {validCombinations.length} <span className="text-xs font-normal text-emerald-600">برنامه</span>
               </div>
-              <div className="text-[11px] text-emerald-600 mt-1">۱۰۰٪ آماده برای انتخاب واحد</div>
+              <div className="text-[11px] text-emerald-600 mt-1">بدون تداخل کلاس و امتحان</div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
@@ -69,7 +73,7 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
               <div className="text-2xl font-black text-rose-800">
                 {invalidCombinations.length} <span className="text-xs font-normal text-rose-600">ترکیب</span>
               </div>
-              <div className="text-[11px] text-rose-600 mt-1">دارای هم‌پوشانی غیرمجاز زمانی</div>
+              <div className="text-[11px] text-rose-600 mt-1">تداخل کلاس یا امتحان</div>
             </div>
           </div>
 
@@ -84,10 +88,13 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
                 <strong>ثابت + ثابت، ثابت + فرد، ثابت + زوج، فرد + فرد، زوج + زوج:</strong> هرگاه در روز و ساعت یکسان واقع شوند، تداخل غیرمجاز است.
               </li>
               <li>
-                <strong>فرد + زوج:</strong> حتی اگر ساعت و روز کاملاً یکسان باشد، <strong>تداخل ندارد</strong>؛ چراکه در هفته‌های جداگانه (یکی هفته‌های زوج و دیگری فرد) برگزار می‌شوند. (مثل سه‌شنبه ۱۴-۱۶ بین پدیده‌ها و مبانی)
+                <strong>فرد + زوج:</strong> حتی اگر ساعت و روز کاملاً یکسان باشد، <strong>تداخل ندارد</strong>؛ چراکه در هفته‌های جداگانه (یکی هفته‌های زوج و دیگری فرد) برگزار می‌شوند.
               </li>
               <li>
                 <strong>کلاس‌های پشت سر هم:</strong> مثلاً ۰۸:۰۰ تا ۱۰:۰۰ و ۱۰:۰۰ تا ۱۲:۰۰ هیچ تداخلی ندارند.
+              </li>
+              <li>
+                <strong>امتحانات:</strong> دو امتحانی که در یک روز از بازه امتحانات و در ساعت‌های هم‌پوشان باشند تداخل دارند؛ امتحان‌های پشت سر هم (مثلاً ۱۱–۱۴ و ۱۴–۱۷) تداخل حساب نمی‌شوند.
               </li>
             </ul>
           </div>
@@ -108,7 +115,11 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-rose-800">ترکیب حذف‌شده شماره {index + 1}:</span>
                     <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-[11px] font-bold">
-                      دارای تداخل زمانی
+                      {c.classConflictDetails && c.classConflictDetails.length > 0 && c.examConflictDetails && c.examConflictDetails.length > 0
+                        ? 'تداخل کلاس و امتحان'
+                        : c.examConflictDetails && c.examConflictDetails.length > 0
+                        ? 'تداخل امتحان'
+                        : 'تداخل زمانی کلاس'}
                     </span>
                   </div>
 
@@ -118,8 +129,10 @@ export const ConflictAuditModal: React.FC<ConflictAuditModalProps> = ({
                   </div>
 
                   {c.conflictDetails && c.conflictDetails.length > 0 && (
-                    <div className="bg-rose-50 border border-rose-200 rounded-lg p-2 text-xs text-rose-900 font-medium">
-                      ⚠️ {c.conflictDetails.join(' | ')}
+                    <div className="bg-rose-50 border border-rose-200 rounded-lg p-2 text-xs text-rose-900 font-medium space-y-1">
+                      {c.conflictDetails.map((d, i) => (
+                        <div key={i}>⚠️ {d}</div>
+                      ))}
                     </div>
                   )}
                 </div>
